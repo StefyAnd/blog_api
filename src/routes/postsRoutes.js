@@ -1,28 +1,9 @@
 const express = require('express');
 const router = express.Router();
+const controller = require ('../controllers/postsController')
 
-router.get('/', (req, res) => {
-    res.json({ msg: 'Consulta de posts' });
-});
+router.post('/', controller.createPost);
+router.get('/', controller.getAllPosts);
+router.get('/:id', controller.getPostById);
 
-router.post('/', (req, res) => {
-    res.json({ msg: 'Creación de un post' });
-});
-router.route('/:id')
-    .get((req, res) => {
-        res.json({ msg: 'Consulta de un post por ID' });
-    })
-    .put((req, res) => {
-        res.json({ msg: 'Actualización de un post por ID' });
-    })
-    .delete((req, res) => {
-        res.json({ msg: 'Eliminación de un post por ID' });
-    });
-
-
-
-
-
-
-
-    module.exports = router;   
+module.exports = router;
