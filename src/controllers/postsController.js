@@ -1,56 +1,36 @@
-const pool = require('../db');
+const postsModel = require('../models/postsModels');
 
-exports.createPost = async (req, res) => {
-  const { titulo, descripcion, categoria, autor_id } = req.body;
-  try {
-    const [result] = await pool.query(
-      'INSERT INTO posts (titulo, descripcion, categoria, autor_id) VALUES (?, ?, ?, ?)',
-      [titulo, descripcion, categoria, autor_id]
-    );
-   
-    const [rows] = await pool.query(
-      `SELECT p.*, a.id as autor_id, a.nombre as autor_nombre, a.email as autor_email, a.imagen as autor_imagen
-       FROM posts p
-       LEFT JOIN autores a ON p.autor_id = a.id
-       WHERE p.id = ?`,
-      [result.insertId]
-    );
-    res.status(201).json(rows[0]);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error creando post' });
-  }
+
+const getAllPosts = async (req, res) => {
+    try {
+        const [rows] = await postsModel.getAllPosts();
+        res.json(rows);
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener los posts' });
+    }
 };
 
-exports.getAllPosts = async (req, res) => {
-  try {
-    const [rows] = await pool.query(
-      `SELECT p.*, a.id as autor_id, a.nombre as autor_nombre, a.email as autor_email, a.imagen as autor_imagen
-       FROM posts p
-       LEFT JOIN autores a ON p.autor_id = a.id
-       ORDER BY p.fecha_creacion DESC`
-    );
-    res.json(rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error al obtener posts' });
-  }
+const getPostById = async (req, res) => {
+    try {
+        const [rows] = await postsModel.getPostById(req.params.id);
+        res.json(rows[0]);
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener el post' });
+    }
 };
 
-exports.getPostById = async (req, res) => {
-  const { id } = req.params;
-  try {
-    const [rows] = await pool.query(
-      `SELECT p.*, a.id as autor_id, a.nombre as autor_nombre, a.email as autor_email, a.imagen as autor_imagen
-       FROM posts p
-       LEFT JOIN autores a ON p.autor_id = a.id
-       WHERE p.id = ?`,
-      [id]
-    );
-    if (!rows.length) return res.status(404).json({ error: 'Post no encontrado' });
-    res.json(rows[0]);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error al obtener post' });
-  }
+
+const createPost = async (req, res) => {
+    try {
+        const [result] = await postsModel.createPost(req.body);
+        res.json({ id: result.insertId, ...req.body });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al crear el post' });
+    }
+};
+
+module.exports = {
+    getAllPosts,
+    getPostById,
+    createPost
 };
